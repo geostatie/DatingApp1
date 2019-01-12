@@ -12,7 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace DatingApp1.API.Controllers
 {
-    [Route("api/[controller]")] 
+    [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -20,8 +20,8 @@ namespace DatingApp1.API.Controllers
         private readonly IConfiguration _config;
         public AuthController(IAuthRepository repo, IConfiguration config)
         {
-            this._repo=repo;
-            this._config=config;
+            this._repo = repo;
+            this._config = config;
         }
 
         [HttpPost("register")]
@@ -29,18 +29,19 @@ namespace DatingApp1.API.Controllers
         {
             //validate input
 
-            userForRegisterDto.Name= userForRegisterDto.Name.ToLower();
+            userForRegisterDto.Name = userForRegisterDto.Name.ToLower();
 
-            if(await _repo.UserExists(userForRegisterDto.Name))
+            if (await _repo.UserExists(userForRegisterDto.Name))
             {
                 return BadRequest("Username already exists");
             }
 
-            var userToCreate= new User() {
-                Name=userForRegisterDto.Name
+            var userToCreate = new User()
+            {
+                Name = userForRegisterDto.Name
             };
 
-            var userCreated=await _repo.Register(userToCreate, userForRegisterDto.Password);
+            var userCreated = await _repo.Register(userToCreate, userForRegisterDto.Password);
 
             //return CreatedAtRoute(...);
             return StatusCode(201);
@@ -49,8 +50,8 @@ namespace DatingApp1.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDto userForLoginDto)
         {
-            var userFromRepo = await _repo.Login( userForLoginDto.Name.ToLower(), userForLoginDto.Password);
-            
+            var userFromRepo = await _repo.Login(userForLoginDto.Name.ToLower(), userForLoginDto.Password);
+
             if (userFromRepo == null)
                 return Unauthorized();
 
@@ -63,22 +64,23 @@ namespace DatingApp1.API.Controllers
             var key = new SymmetricSecurityKey(Encoding.UTF8
                 .GetBytes(_config.GetSection("AppSettings:Token").Value));
 
-                var creds=new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
 
-                var tokenDescriptor = new SecurityTokenDescriptor()
-                {
-                    Subject=new ClaimsIdentity(claims),
-                    Expires=DateTime.Now.AddDays(1),
-                    SigningCredentials = creds
-                };
+            var tokenDescriptor = new SecurityTokenDescriptor()
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.Now.AddDays(1),
+                SigningCredentials = creds
+            };
 
-                var tokenHandler= new JwtSecurityTokenHandler();
+            var tokenHandler = new JwtSecurityTokenHandler();
 
-                var token=tokenHandler.CreateToken(tokenDescriptor);
+            var token = tokenHandler.CreateToken(tokenDescriptor);
 
-                return Ok( new {
-                    token=tokenHandler.WriteToken(token)
-                });
+            return Ok(new
+            {
+                token = tokenHandler.WriteToken(token)
+            });
         }
     }
 }
